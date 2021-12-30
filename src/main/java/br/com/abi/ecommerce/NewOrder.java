@@ -14,7 +14,13 @@ public class NewOrder {
         var producer = new KafkaProducer<String, String>(properties());
         var value = "idOrder,idUser,valueOrder";
         var record = new ProducerRecord<>("ECOMMERCE_NEW_ORDER", value, value); // key-value
-        producer.send(record).get(); // assync
+        producer.send(record, (data, ex) -> {
+            if (ex != null) {
+                ex.printStackTrace();
+                return;
+            }
+            System.out.println(data.topic() + ":::" + data.partition() + "/" + data.offset() + "/" + data.timestamp());
+        }).get(); // assync
     }
 
     private static Properties properties() {
