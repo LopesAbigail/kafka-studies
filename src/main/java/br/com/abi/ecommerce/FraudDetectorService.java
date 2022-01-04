@@ -13,22 +13,24 @@ public class FraudDetectorService {
     public static void main(String[] args) {
         var consumer = new KafkaConsumer<String, String>(properties());
         consumer.subscribe(Collections.singletonList("ECOMMERCE_NEW_ORDER"));
-        var records = consumer.poll(Duration.ofMillis(100));
-        if (records.isEmpty()) {
-            System.out.println("Not found!");
-            return;
-        }
-        records.forEach( record -> {
-            System.out.println("Processing new order, checking for fraud" +
-                "\n" + record.key() + "\n" + record.value());
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                // ignoring
-                e.printStackTrace();
+        while (true) {
+            var records = consumer.poll(Duration.ofMillis(100));
+            if (records.isEmpty()) {
+                System.out.println("Not found!");
+                continue;
             }
-            System.out.println("Order processed");
-        });
+            records.forEach(record -> {
+                System.out.println("Processing new order, checking for fraud" +
+                        "\n" + record.key() + "\n" + record.value());
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    // ignoring
+                    e.printStackTrace();
+                }
+                System.out.println("Order processed");
+            });
+        }
     }
 
     private static Properties properties() {
