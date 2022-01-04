@@ -1,5 +1,6 @@
 package br.com.abi.ecommerce;
 
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -14,13 +15,17 @@ public class NewOrder {
         var producer = new KafkaProducer<String, String>(properties());
         var value = "idOrder,idUser,valueOrder";
         var record = new ProducerRecord<>("ECOMMERCE_NEW_ORDER", value, value); // key-value
-        producer.send(record, (data, ex) -> {
+        Callback callback = (data, ex) -> {
             if (ex != null) {
                 ex.printStackTrace();
                 return;
             }
             System.out.println(data.topic() + ":::" + data.partition() + "/" + data.offset() + "/" + data.timestamp());
-        }).get(); // assync
+        };
+        var email = "Thanks! We are processing your order!";
+        var emailRecord = new ProducerRecord<>("ECOMMERCE_SEND_EMAIL", email, email);
+        producer.send(record,callback).get(); // assync
+        producer.send(emailRecord, callback).get();
     }
 
     private static Properties properties() {
